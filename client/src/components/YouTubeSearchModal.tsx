@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Play, Plus, X, Radio, Loader2 } from 'lucide-react';
 import type { YouTubeSearchResult } from '../types';
 
+import { getBackendUrl } from '../services/socket';
+
 interface YouTubeSearchModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -35,7 +37,7 @@ export const YouTubeSearchModal: React.FC<YouTubeSearchModalProps> = ({
     setHasSearched(true);
 
     try {
-      const SERVER_URL = import.meta.env.VITE_SERVER_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin);
+      const SERVER_URL = getBackendUrl();
       const res = await fetch(`${SERVER_URL}/api/youtube/search?q=${encodeURIComponent(searchTerm.trim())}`);
       const data = await res.json();
 

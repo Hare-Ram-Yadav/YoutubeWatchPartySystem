@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Save, X, Moon, Sun, Check } from 'lucide-react';
 import type { UserPreferences } from '../types';
+import { getBackendUrl } from '../services/socket';
 
 interface PreferencesModalProps {
   isOpen: boolean;
@@ -25,7 +26,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({
     if (!isOpen) return;
 
     // Load existing preferences from backend or localStorage
-    const SERVER_URL = import.meta.env.VITE_SERVER_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin);
+    const SERVER_URL = getBackendUrl();
     fetch(`${SERVER_URL}/api/preferences/${userId || 'default_user'}`)
       .then((res) => res.json())
       .then((data) => {
@@ -67,7 +68,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({
 
     // Save to server
     try {
-      const SERVER_URL = import.meta.env.VITE_SERVER_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin);
+      const SERVER_URL = getBackendUrl();
       await fetch(`${SERVER_URL}/api/preferences/${userId || 'default_user'}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

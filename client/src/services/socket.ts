@@ -8,13 +8,13 @@ export const getBackendUrl = () => {
   const hostname = window.location.hostname;
   const protocol = window.location.protocol;
 
-  // If connected via tunnel (ngrok, localtunnel, cloudflare)
-  if (hostname.includes('ngrok') || hostname.includes('loca.lt') || hostname.includes('trycloudflare.com')) {
-    return window.location.origin;
+  // Local development (localhost, 127.0.0.1)
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return `${protocol}//${hostname}:5000`;
   }
 
-  // Local development (localhost, 127.0.0.1, or local Wi-Fi IP like 192.168.x.x)
-  return `${protocol}//${hostname}:5000`;
+  // Production / Vercel deployment / Tunnels: use same origin because Vercel rewrites route /api and /socket.io to server
+  return window.location.origin;
 };
 
 export const SERVER_URL = getBackendUrl();

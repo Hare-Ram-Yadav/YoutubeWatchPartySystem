@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Compass, Play, Search, Radio, History, ArrowRight, Flame, RefreshCw } from 'lucide-react';
 import type { WatchHistoryItem, YouTubeSearchResult } from '../types';
+import { getBackendUrl } from '../services/socket';
 
 interface ExploreViewProps {
   onStartRoomWithVideo: (videoUrlOrId: string, title?: string) => void;
@@ -20,7 +21,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   const [publicRooms, setPublicRooms] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const SERVER_URL = import.meta.env.VITE_SERVER_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin);
+  const SERVER_URL = getBackendUrl();
 
   useEffect(() => {
     loadData();

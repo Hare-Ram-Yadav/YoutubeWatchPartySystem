@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { socket, connectSocket, disconnectSocket } from './services/socket';
+import { socket, connectSocket, disconnectSocket, getBackendUrl } from './services/socket';
 import type { RoomState, Role, EmojiReaction, YouTubeSearchResult } from './types';
 import { Navbar } from './components/Navbar';
 import { LandingPage } from './components/LandingPage';
@@ -43,7 +43,7 @@ export function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const roomCodeFromUrl = urlParams.get('room') || '';
 
-  const SERVER_URL = import.meta.env.VITE_SERVER_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin);
+  const SERVER_URL = getBackendUrl();
 
   useEffect(() => {
     connectSocket();
