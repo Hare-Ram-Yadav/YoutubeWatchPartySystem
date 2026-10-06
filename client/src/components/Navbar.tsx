@@ -43,13 +43,15 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header style={{
+    <footer style={{
       backgroundColor: '#FFFFFF',
-      borderBottom: '1px solid #E2E8F0',
+      borderTop: '1px solid #E2E8F0',
       position: 'sticky',
-      top: 0,
+      bottom: 0,
       zIndex: 50,
-      boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+      boxShadow: '0 -2px 10px rgba(0,0,0,0.05)',
+      marginTop: 'auto',
+      width: '100%',
     }}>
       <div style={{
         height: '60px',
@@ -258,11 +260,17 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div style={{
           backgroundColor: '#FFFFFF',
           borderTop: '1px solid #E2E8F0',
+          borderBottom: '1px solid #E2E8F0',
           padding: '1rem',
           display: 'flex',
           flexDirection: 'column',
           gap: '0.85rem',
-          boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
+          boxShadow: '0 -10px 15px -3px rgba(0,0,0,0.1)',
+          position: 'absolute',
+          bottom: '60px',
+          left: 0,
+          right: 0,
+          zIndex: 49,
         }}>
           {roomId && (
             <div style={{
@@ -391,6 +399,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
       )}
-    </header>
+    </footer>
   );
 };

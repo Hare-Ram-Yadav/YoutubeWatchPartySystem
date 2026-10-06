@@ -28,30 +28,7 @@ export class Room {
       title: 'How to Build Better Products — Keynote on Product Strategy & Design',
     };
 
-    // Default sample queue items matching screenshot
-    this.queue = [
-      {
-        id: 'q1',
-        videoId: 'L_LUpnjgPso',
-        title: 'Typography & Micro-Interactions for WatchParty',
-        thumbnailUrl: 'https://img.youtube.com/vi/L_LUpnjgPso/mqdefault.jpg',
-        addedBy: 'Alex Johnson',
-      },
-      {
-        id: 'q2',
-        videoId: 'fJ9rUzIMcZQ',
-        title: 'Design Systems & Scalable UI Architecture 2025',
-        thumbnailUrl: 'https://img.youtube.com/vi/fJ9rUzIMcZQ/mqdefault.jpg',
-        addedBy: 'Sarah Miller',
-      },
-      {
-        id: 'q3',
-        videoId: '9bZkp7q19f0',
-        title: 'Our Planet — Ambient Coastal Forests (4K)',
-        thumbnailUrl: 'https://img.youtube.com/vi/9bZkp7q19f0/mqdefault.jpg',
-        addedBy: 'Alex Johnson',
-      },
-    ];
+    this.queue = [];
   }
 
   public getCurrentPlaybackState(): PlaybackState {

@@ -323,30 +323,6 @@ export function App() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
-      <Navbar
-        roomName={roomState?.name}
-        roomId={roomState?.id}
-        myRole={myRole}
-        username={currentUser?.username}
-        participantCount={roomState?.participants.length || 0}
-        activeTab={activeTab}
-        onNavigateTab={(tab) => {
-          if (tab === 'preferences') {
-            setIsPreferencesOpen(true);
-          } else {
-            setActiveTab(tab);
-          }
-        }}
-        onOpenCreateRoom={() => {
-          setRoomState(null);
-          setActiveTab('watch');
-        }}
-        onOpenPreferences={() => setIsPreferencesOpen(true)}
-        onOpenSearchModal={() => handleOpenSearchModal()}
-        onOpenProfileModal={() => setIsProfileModalOpen(true)}
-        onLeaveRoom={handleLeaveRoom}
-      />
-
       {/* Floating Emoji Reactions Overlay */}
       <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 99, overflow: 'hidden' }}>
         {floatingReactions.map((r, i) => (
@@ -367,7 +343,7 @@ export function App() {
       {errorMessage && (
         <div style={{
           position: 'fixed',
-          top: '76px',
+          top: '1.5rem',
           right: '1.5rem',
           backgroundColor: '#FEF2F2',
           border: '1px solid #FCA5A5',
@@ -407,7 +383,7 @@ export function App() {
         />
       ) : (
         <main className="main-layout-container">
-          {/* Top Status Bar below Navbar */}
+          {/* Top Status Bar */}
           <div className="top-status-bar">
             <div className="status-info-group">
               <div style={{
@@ -457,7 +433,7 @@ export function App() {
             </div>
           )}
 
-          {/* Main Content Section below Navbar */}
+          {/* Main Content Section */}
           <div className="main-content-section">
             <div className="player-main-column">
               <YouTubePlayer
@@ -497,6 +473,31 @@ export function App() {
           </div>
         </main>
       )}
+
+      {/* Footer Navigation Bar */}
+      <Navbar
+        roomName={roomState?.name}
+        roomId={roomState?.id}
+        myRole={myRole}
+        username={currentUser?.username}
+        participantCount={roomState?.participants.length || 0}
+        activeTab={activeTab}
+        onNavigateTab={(tab) => {
+          if (tab === 'preferences') {
+            setIsPreferencesOpen(true);
+          } else {
+            setActiveTab(tab);
+          }
+        }}
+        onOpenCreateRoom={() => {
+          setRoomState(null);
+          setActiveTab('watch');
+        }}
+        onOpenPreferences={() => setIsPreferencesOpen(true)}
+        onOpenSearchModal={() => handleOpenSearchModal()}
+        onOpenProfileModal={() => setIsProfileModalOpen(true)}
+        onLeaveRoom={handleLeaveRoom}
+      />
 
       {/* Modals */}
       <ChangeVideoModal

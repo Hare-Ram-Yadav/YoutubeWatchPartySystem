@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { PlaybackState, Role, QueueItem } from '../types';
-import { AlertTriangle, Lock, Play, Pause, Bookmark, ThumbsUp, Radio, Plus, Gauge, Volume2, VolumeX, Sliders, Zap } from 'lucide-react';
+import { AlertTriangle, Lock, Play, Pause, Bookmark, ThumbsUp, Radio, Plus, Zap } from 'lucide-react';
 
 interface YouTubePlayerProps {
   playback: PlaybackState;
@@ -47,12 +47,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
   const [isLaggingCatchUp, setIsLaggingCatchUp] = useState(false);
   const [behindSeconds, setBehindSeconds] = useState<number>(0);
   const [hostPauseCeiling, setHostPauseCeiling] = useState<number | null>(null);
-
-  // Video Quality, Speed & Audio Controls (Both Host & Participants)
-  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
-  const [playbackQuality, setPlaybackQuality] = useState<string>('auto');
-  const [volume, setVolume] = useState<number>(100);
-  const [isMuted, setIsMuted] = useState<boolean>(false);
 
   const canControl = myRole === 'host' || myRole === 'moderator';
 
@@ -106,9 +100,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
           if (playback.currentTime > 0) {
             event.target.seekTo(playback.currentTime, true);
           }
-          try {
-            event.target.setPlaybackRate(playbackSpeed);
-          } catch (e) {}
         },
         onStateChange: (event: any) => {
           if (isRemoteUpdateRef.current) return;
@@ -252,16 +243,18 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
       const pausePoint = playback.currentTime;
       const localTime = playerRef.current.getCurrentTime();
 
-      // If participant is already at or ahead of host pause point -> pause immediately
-      if (localTime >= pausePoint - 0.5) {
+      if (forceSync || localTime >= pausePoint - 0.5) {
         isRemoteUpdateRef.current = true;
         setIsLocallyPaused(false);
         isLocallyPausedRef.current = false;
+        setIsLaggingCatchUp(false);
+        setHostPauseCeiling(pausePoint);
+        setBehindSeconds(0);
         try {
           playerRef.current.seekTo(pausePoint, true);
           playerRef.current.pauseVideo();
         } catch (err) {}
-        setTimeout(() => { isRemoteUpdateRef.current = false; }, 300);
+        setTimeout(() => { isRemoteUpdateRef.current = false; }, 1200);
       } else {
         // Participant is lagging behind -> allow them to keep playing until reaching pausePoint
         setIsLaggingCatchUp(true);
@@ -300,7 +293,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
     } finally {
       setTimeout(() => {
         isRemoteUpdateRef.current = false;
-      }, 500);
+      }, 1200);
     }
   };
 
@@ -309,7 +302,26 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
     isLocallyPausedRef.current = false;
     setIsLaggingCatchUp(false);
     setBehindSeconds(0);
-    syncPlayerWithState(true);
+
+    if (!playerRef.current || typeof playerRef.current.seekTo !== 'function') return;
+
+    const targetTime = calculateMaxWatchableHorizon();
+    isRemoteUpdateRef.current = true;
+
+    try {
+      playerRef.current.seekTo(targetTime, true);
+      if (playback.isPlaying) {
+        playerRef.current.playVideo();
+      } else {
+        playerRef.current.pauseVideo();
+      }
+    } catch (err) {
+      console.error('[Jump to Host Error]', err);
+    } finally {
+      setTimeout(() => {
+        isRemoteUpdateRef.current = false;
+      }, 1200);
+    }
   };
 
   const handleToggleLocalPause = () => {
@@ -321,43 +333,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
       if (playerRef.current && typeof playerRef.current.pauseVideo === 'function') {
         playerRef.current.pauseVideo();
       }
-    }
-  };
-
-  const handleSpeedChange = (speed: number) => {
-    setPlaybackSpeed(speed);
-    if (playerRef.current && typeof playerRef.current.setPlaybackRate === 'function') {
-      playerRef.current.setPlaybackRate(speed);
-    }
-  };
-
-  const handleQualityChange = (quality: string) => {
-    setPlaybackQuality(quality);
-    if (playerRef.current && typeof playerRef.current.setPlaybackQuality === 'function') {
-      playerRef.current.setPlaybackQuality(quality);
-    }
-  };
-
-  const handleVolumeChange = (newVol: number) => {
-    setVolume(newVol);
-    setIsMuted(newVol === 0);
-    if (playerRef.current) {
-      if (newVol === 0) {
-        playerRef.current.mute();
-      } else {
-        playerRef.current.unMute();
-        playerRef.current.setVolume(newVol);
-      }
-    }
-  };
-
-  const handleToggleMute = () => {
-    if (isMuted) {
-      setIsMuted(false);
-      if (playerRef.current) playerRef.current.unMute();
-    } else {
-      setIsMuted(true);
-      if (playerRef.current) playerRef.current.mute();
     }
   };
 
@@ -520,7 +495,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
             borderRadius: '4px',
             backdropFilter: 'blur(4px)',
           }}>
-            {playbackQuality.toUpperCase()} • {playbackSpeed}x • Live Edge
+            Live Edge
           </span>
 
           <button
@@ -668,92 +643,6 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
           >
             <Radio size={14} /> Jump to Live Host
           </button>
-        </div>
-
-        {/* Bottom Control Bar Row: Playback Speed, Quality/Resolution, and Volume Controls (Host & Participants) */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderTop: '1px solid #E2E8F0',
-          paddingTop: '0.65rem',
-          flexWrap: 'wrap',
-          gap: '0.75rem',
-        }}>
-          {/* Playback Speed Controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: '#334155' }}>
-            <Gauge size={15} color="#DC2626" />
-            <span style={{ fontWeight: 700 }}>Speed:</span>
-            <div style={{ display: 'flex', gap: '0.2rem' }}>
-              {[0.5, 0.75, 1, 1.25, 1.5, 2].map((spd) => (
-                <button
-                  key={spd}
-                  onClick={() => handleSpeedChange(spd)}
-                  style={{
-                    border: '1px solid #CBD5E1',
-                    borderRadius: '0.375rem',
-                    padding: '0.15rem 0.45rem',
-                    fontSize: '0.75rem',
-                    fontWeight: playbackSpeed === spd ? 800 : 500,
-                    cursor: 'pointer',
-                    backgroundColor: playbackSpeed === spd ? '#DC2626' : '#FFFFFF',
-                    color: playbackSpeed === spd ? '#FFFFFF' : '#475569',
-                  }}
-                >
-                  {spd}x
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Quality / Resolution Selector */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: '#334155' }}>
-            <Sliders size={15} color="#2563EB" />
-            <span style={{ fontWeight: 700 }}>Quality:</span>
-            <select
-              value={playbackQuality}
-              onChange={(e) => handleQualityChange(e.target.value)}
-              style={{
-                padding: '0.2rem 0.5rem',
-                borderRadius: '0.375rem',
-                border: '1px solid #CBD5E1',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                color: '#0F172A',
-                backgroundColor: '#FFFFFF',
-                outline: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              <option value="auto">Auto (Adaptive HD)</option>
-              <option value="hd1080">1080p Full HD</option>
-              <option value="hd720">720p HD</option>
-              <option value="large">480p SD</option>
-              <option value="medium">360p Low</option>
-              <option value="small">240p Saver</option>
-            </select>
-          </div>
-
-          {/* Volume Control */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: '#334155' }}>
-            <button
-              onClick={handleToggleMute}
-              style={{ border: 'none', background: 'none', cursor: 'pointer', color: isMuted ? '#DC2626' : '#475569', display: 'flex', alignItems: 'center' }}
-            >
-              {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-            </button>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={isMuted ? 0 : volume}
-              onChange={(e) => handleVolumeChange(Number(e.target.value))}
-              style={{ width: '80px', accentColor: '#DC2626', cursor: 'pointer' }}
-            />
-            <span style={{ fontSize: '0.75rem', color: '#64748B', width: '28px' }}>
-              {isMuted ? 'Muted' : `${volume}%`}
-            </span>
-          </div>
         </div>
       </div>
 
