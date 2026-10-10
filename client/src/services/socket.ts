@@ -1,7 +1,9 @@
 import { io, Socket } from 'socket.io-client';
 
+export const DEFAULT_RENDER_BACKEND = 'https://youtubewatchpartysystem.onrender.com';
+
 export const getBackendUrl = (): string => {
-  // 1. Check runtime localStorage override (allows connecting deployed frontend to Render backend easily)
+  // 1. Check runtime localStorage override (allows connecting deployed frontend to custom backend easily)
   if (typeof window !== 'undefined' && window.localStorage) {
     const customUrl = window.localStorage.getItem('WATCHPARTY_BACKEND_URL');
     if (customUrl && customUrl.trim()) {
@@ -22,8 +24,13 @@ export const getBackendUrl = (): string => {
     return `${protocol}//${hostname}:5000`;
   }
 
-  // 4. Production: same origin (when both client & server are deployed on Render)
-  return window.location.origin;
+  // 4. Direct Render hosting (frontend & backend hosted together on same origin)
+  if (hostname.includes('onrender.com')) {
+    return window.location.origin;
+  }
+
+  // 5. Vercel deployment or external client: automatically connect to Render backend
+  return DEFAULT_RENDER_BACKEND;
 };
 
 export const setCustomBackendUrl = (url: string) => {
