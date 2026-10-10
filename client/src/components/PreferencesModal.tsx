@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, X, Moon, Sun, Check } from 'lucide-react';
+import { Settings, Save, X, Moon, Sun, Check, Globe } from 'lucide-react';
 import type { UserPreferences } from '../types';
 import { getBackendUrl } from '../services/socket';
 
@@ -20,6 +20,7 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({
   const [syncThreshold, setSyncThreshold] = useState(1.5);
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light');
   const [notifications, setNotifications] = useState(true);
+  const [backendUrl, setBackendUrl] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('WATCHPARTY_BACKEND_URL') || '' : ''));
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
@@ -66,6 +67,16 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({
     localStorage.setItem('user_prefs', JSON.stringify(prefs));
     onSavePreferences(prefs);
 
+    const oldBackendUrl = localStorage.getItem('WATCHPARTY_BACKEND_URL') || '';
+    const cleanUrl = backendUrl.trim().replace(/\/+$/, '');
+    const urlChanged = oldBackendUrl !== cleanUrl;
+
+    if (cleanUrl) {
+      localStorage.setItem('WATCHPARTY_BACKEND_URL', cleanUrl);
+    } else {
+      localStorage.removeItem('WATCHPARTY_BACKEND_URL');
+    }
+
     // Save to server
     try {
       const SERVER_URL = getBackendUrl();
@@ -82,6 +93,9 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({
     setTimeout(() => {
       setIsSaved(false);
       onClose();
+      if (urlChanged) {
+        window.location.reload();
+      }
     }, 800);
   };
 
@@ -264,6 +278,37 @@ export const PreferencesModal: React.FC<PreferencesModalProps> = ({
                 System
               </button>
             </div>
+          </div>
+
+          <hr style={{ border: 'none', borderTop: '1px solid #F1F5F9', margin: 0 }} />
+
+          {/* Backend Server URL Setting */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.35rem' }}>
+              <Globe size={16} color="#DC2626" />
+              <label style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0F172A' }}>
+                Backend Server URL (Render / Production)
+              </label>
+            </div>
+            <p style={{ fontSize: '0.75rem', color: '#64748B', margin: '0 0 0.5rem 0' }}>
+              Connect this client to your backend on Render (e.g. <code>https://youtube-watch-party.onrender.com</code>). Leave blank to use current origin.
+            </p>
+            <input
+              type="text"
+              placeholder="https://your-service.onrender.com"
+              value={backendUrl}
+              onChange={(e) => setBackendUrl(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.55rem 0.75rem',
+                borderRadius: '0.5rem',
+                border: '1px solid #CBD5E1',
+                fontSize: '0.85rem',
+                color: '#0F172A',
+                boxSizing: 'border-box',
+                outline: 'none',
+              }}
+            />
           </div>
 
           {/* Footer Submit */}

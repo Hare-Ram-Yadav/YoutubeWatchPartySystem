@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import path from 'path';
 import dotenv from 'dotenv';
+import fs from 'fs';
 import authRoutes from './routes/auth.js';
 import roomRoutes from './routes/room.js';
 import featureRoutes from './routes/features.js';
@@ -37,7 +38,11 @@ app.get('/api/health', (req, res) => {
 });
 
 // Serve frontend static files if built
-const clientDistPath = path.join(process.cwd(), '../client/dist');
+const candidateDistPaths = [
+  path.resolve(process.cwd(), 'client/dist'),
+  path.resolve(process.cwd(), '../client/dist'),
+];
+const clientDistPath = candidateDistPaths.find((p) => fs.existsSync(p)) || candidateDistPaths[0];
 app.use(express.static(clientDistPath));
 
 app.get('*', (req, res, next) => {

@@ -1,20 +1,38 @@
 import { io, Socket } from 'socket.io-client';
 
-export const getBackendUrl = () => {
+export const getBackendUrl = (): string => {
+  // 1. Check runtime localStorage override (allows connecting deployed frontend to Render backend easily)
+  if (typeof window !== 'undefined' && window.localStorage) {
+    const customUrl = window.localStorage.getItem('WATCHPARTY_BACKEND_URL');
+    if (customUrl && customUrl.trim()) {
+      return customUrl.trim().replace(/\/+$/, '');
+    }
+  }
+
+  // 2. Build-time Vite environment variable
   if (import.meta.env.VITE_SERVER_URL) {
-    return import.meta.env.VITE_SERVER_URL;
+    return import.meta.env.VITE_SERVER_URL.trim().replace(/\/+$/, '');
   }
 
   const hostname = window.location.hostname;
   const protocol = window.location.protocol;
 
-  // Local development (localhost, 127.0.0.1)
+  // 3. Local development (localhost, 127.0.0.1)
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
     return `${protocol}//${hostname}:5000`;
   }
 
-  // Production / Vercel deployment / Tunnels: use same origin because Vercel rewrites route /api and /socket.io to server
+  // 4. Production: same origin (when both client & server are deployed on Render)
   return window.location.origin;
+};
+
+export const setCustomBackendUrl = (url: string) => {
+  if (url && url.trim()) {
+    localStorage.setItem('WATCHPARTY_BACKEND_URL', url.trim().replace(/\/+$/, ''));
+  } else {
+    localStorage.removeItem('WATCHPARTY_BACKEND_URL');
+  }
+  window.location.reload();
 };
 
 export const SERVER_URL = getBackendUrl();
