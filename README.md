@@ -1,6 +1,7 @@
 # 🎥 YouTube Watch Party Application
 
-Here is the link to go to public website : https://youtubewatchpartysystem.onrender.com/
+Here is the link to go to public website : Backend -- https://youtubewatchpartysystem.onrender.com/ 
+https://youtube-watch-party-system-liard.vercel.app/
 
 A full-stack, real-time synchronized YouTube watch party system built with **React**, **TypeScript**, **Vite**, **Node.js**, **Express**, **Socket.IO (WebSockets)**, and **SQLite** for state persistence.
 
